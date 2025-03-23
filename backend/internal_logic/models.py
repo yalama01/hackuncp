@@ -15,6 +15,7 @@ class Person:
     job_title: Optional[str] = field(default=None)
     score: Optional[int] = field(default=None)
     bio: Optional[str] = field(default=None)
+    email: Optional[str] = field(default=None)
 
     def __post_init__(self):
         # Ensure json_raw is always a dictionary or None
