@@ -43,7 +43,7 @@ def bio(person: Person, event_summary: str) -> str:
             Past job title(s): {person.past_job_title}
 
             Please create an email to this person."""
-        },]
+        }],
             temperature=.35,
             top_logprobs=.95,
             max_tokens=800
