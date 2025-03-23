@@ -47,8 +47,15 @@ def get_relevance_score(event_summary: str, person_summary: str) -> int:
 
     return int(content)
 
+if __name__ == "__main__":
+    event_summary = "We are organizing a community-led initiative to transform an abandoned lot into a green space that includes a community garden, native plant landscaping, and educational signage about local ecology. The goal is to improve food access, promote environmental awareness, and create a safe, beautiful space for residents to gather. We are seeking support with land use approvals, funding, volunteer coordination, and long-term maintenance partnerships."
+    person_summary = "I am John Pork."
 
-event_summary = "We are organizing a community-led initiative to transform an abandoned lot into a green space that includes a community garden, native plant landscaping, and educational signage about local ecology. The goal is to improve food access, promote environmental awareness, and create a safe, beautiful space for residents to gather. We are seeking support with land use approvals, funding, volunteer coordination, and long-term maintenance partnerships."
-person_summary = "I am John Pork."
+    print(get_relevance_score(event_summary, person_summary))
+    person_summary = """
+    Sustainability Experience: Worked as an Eco-Rep at UNC Charlotte Office of Sustainability, engaging in peer-to-peer outreach and education initiatives. This experience is valuable for promoting sustainable gardening practices and educating others on eco-friendly methods.
+    Analytical Skills: As a Functional Compliance Purchasing Analyst, Anna analyzes data and identifies risks, which can help in assessing soil quality, plant health, and optimizing garden resources effectively.
+    Community Engagement: Skills in volunteering and outreach programs indicate a strong ability to connect with community members, which can be beneficial for organizing community gardening events or workshops.
+    """
+    print(get_relevance_score(event_summary, person_summary))
 
-print(get_relevance_score(event_summary, person_summary))
