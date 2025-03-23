@@ -13,7 +13,7 @@ def bio(person: Person, event_summery: str) -> str:
         messages=[
             {
             "role": "system",
-            "content": """You are an an agent tasked with taking in information about a person who could help the user.
+            "content": """You are an agent tasked with taking in information about a person who could help the user.
             The user wants to know how this person could help them compleate their task.
             You will be given the task the user has asked, and the information about a person they should know about.
             Use that information to create 3 bullet point bio about the person using information that is relivent to the event the user is planing.
