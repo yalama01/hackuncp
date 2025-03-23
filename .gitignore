@@ -1,2 +1,3 @@
 frontend/plantparty/node_modules
 .env*
+.idea
