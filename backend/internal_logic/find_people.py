@@ -4,8 +4,13 @@ from dataclasses import asdict
 from datetime import datetime
 from models import Person
 from peopledatalabs import PDLPY
+from dotenv import load_dotenv
+import os
 
-CLIENT = PDLPY(api_key="ab5cf8243aa27d915bc40233997b1b5f852ec67d376699cfdc525f4b6bd510c3")
+#get key
+load_dotenv()
+pdl_api_key = os.getenv("PDL_API_KEY")
+CLIENT = PDLPY(api_key=pdl_api_key)
 
 #Helper func
 def build_sql_query(job_titles: List[str], location: str) -> str:
@@ -37,7 +42,6 @@ def find_people(job_titles: List[str], location: str):
     }
 
     response = CLIENT.person.search(**params).json()
-    information = []
     persons = []
 
     if response.get("status") == 200 and "data" in response:
