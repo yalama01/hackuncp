@@ -58,6 +58,8 @@ def find_people(job_titles: List[str], location: str):
         print("error with PDL request:")
         print(json.dumps(response, indent=2))  # Show full error
         if "error" in response:
+            print(response)
+            print(response.text)
             if "sql" in response["error"].lower():
                 print("possible issue with the SQL syntax.")
         return []

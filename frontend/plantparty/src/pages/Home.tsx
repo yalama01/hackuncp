@@ -75,6 +75,7 @@ const Home = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<string | null>(null);
+  const [isCooldown, setIsCooldown] = useState(false);
 
   // ────────────────────────────────────────────────────────────────────────────
   //  Fetch suggestions from Photon
@@ -125,6 +126,11 @@ const Home = () => {
       return;
     }
 
+    if (isCooldown) {
+      setSubmitStatus('Please wait before submitting again');
+      return;
+    }
+
     setIsSubmitting(true);
     setSubmitStatus(null);
 
@@ -160,6 +166,13 @@ const Home = () => {
       await submitProjectProposal(proposal);
       setSubmitStatus('Project proposal submitted successfully!');
       setPeople(mockPeople);
+      
+      // Start cooldown
+      setIsCooldown(true);
+      setTimeout(() => {
+        setIsCooldown(false);
+      }, 5000); // 5 seconds cooldown
+
     } catch (error) {
       console.error('Error submitting project proposal:', error);
       setSubmitStatus('Failed to submit project proposal. Please try again.');
@@ -302,10 +315,10 @@ const Home = () => {
           variant="contained"
           size="large"
           onClick={handleSubmit}
-          disabled={isSubmitting}
+          disabled={isSubmitting || isCooldown}
           startIcon={isSubmitting ? <CircularProgress size={20} /> : <SendIcon />}
         >
-          {isSubmitting ? 'Submitting...' : 'Submit Project Proposal'}
+          {isSubmitting ? 'Submitting...' : isCooldown ? 'Please wait...' : 'Submit Project Proposal'}
         </Button>
       </Box>
 
