@@ -6,12 +6,16 @@ from backend.internal_logic.bio_summary import make_bio
 from backend.internal_logic.email_draft import make_email
 from backend.internal_logic.models import ProjectSubmission
 from fastapi import APIRouter
+from fastapi.responses import HTMLResponse
+
 
 # Initialize FastAPI
 router = APIRouter()
 
 @router.post("/project/proposal")
 async def submit_event_location(event: ProjectSubmission):
+    print(event.project_overview)
+    print(event.location)
     job_titles = get_job_title_list(event.project_overview)
     people = find_people(job_titles, location= event.location)
     relevancy_scores = [get_relevance_score(event.project_overview, person) for person in people]
@@ -23,3 +27,18 @@ async def submit_event_location(event: ProjectSubmission):
     return {
         "people_list": sanitized_people
     }
+
+
+
+@router.get("/", response_class=HTMLResponse)
+async def serve_hello_page():
+    return """ 
+    <html>
+        <head>
+            <title>Hello Page</title>
+        </head>
+        <body>
+            <h1>Hello!</h1>
+        </body>
+    </html>
+    """
