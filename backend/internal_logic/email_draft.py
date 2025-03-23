@@ -45,7 +45,6 @@ def bio(person: Person, event_summary: str) -> str:
             Please create an email to this person."""
         }],
             temperature=.35,
-            top_logprobs=.95,
             max_tokens=800
     )
 

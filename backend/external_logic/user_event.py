@@ -26,9 +26,9 @@ async def submit_event_location(event: ProjectSubmission):
     people = find_people(job_titles, location= event.location)
     summarize_bios = [make_bio(person , event.project_overview ) for person in people]
     relevancy_scores = [get_relevance_score(event.project_overview, person) for person in people]
-    email = [make_email(person) for person in people]
+    email = [make_email(person, event.project_overview) for person in people]
 
-    sanitized_people = [filter_dict(person, ["name","score","email_draft","bio","location","linkedin_url","emails"]) for person in people]
+    sanitized_people = [filter_dict(person.__dict__, ["name","score","email_draft","bio","location","linkedin_url","emails"]) for person in people]
 
     return {
         "people_list": sanitized_people

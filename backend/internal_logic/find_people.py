@@ -23,6 +23,10 @@ from typing import List
 
 from typing import List
 
+from typing import List
+
+from typing import List
+
 
 def build_sql_query(job_titles: List[str], location) -> str:
     if not job_titles:
@@ -37,11 +41,17 @@ def build_sql_query(job_titles: List[str], location) -> str:
 
     job_titles_str = ", ".join(safe_titles)
 
-    # Using the correct column names from the error message
+    # Format location_name in the format "locality, region, country"
+    # From the docs: location_name String - The location of the person's current address
+    location_name = f"{location.city}, {location.state}, {location.country}"
+    safe_location_name = location_name.replace("'", "''").lower()
+
+    # Based on the docs, location_postal_code is the correct field name
+    safe_postal_code = location.postal_code.replace("'", "''")
+
     query = f"""
     SELECT * FROM person
-    WHERE countries = '{location.country.replace("'", "''")}' 
-    AND location_postal_code = '{location.postal_code.replace("'", "''")}' 
+    WHERE location_country='united states'
     AND job_title IN ({job_titles_str});
     """
     return query
@@ -112,7 +122,7 @@ def find_people(job_titles: List[str], location: str):
             "summary": person.get("summary", ""),
             "emails": person.get("personal_emails", []),
             "phone_numbers": person.get("phone_numbers", []),
-            "linkedin": f"https://linkedin.com/in/{person.get('linkedin_username', '')}",
+            "linkedin_url": f"https://linkedin.com/in/{person.get('linkedin_username', '')}",
             "past_job_title": relevant_past_jobs
         }
 

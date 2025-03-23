@@ -41,10 +41,10 @@ def test_submit_verbose_location():
     payload = {
         "project_overview": "This project aims to develop a self-sustaining urban rooftop garden in the downtown area, spanning 50 square feet. It will utilize hydroponic systems to maximize crop yield and implement a rainwater collection system for irrigation. Additionally, the garden will serve as a community engagement hub, hosting educational workshops on sustainable agriculture and providing fresh produce to local food banks.",
         "location": {
-            "city": "Pembrook",
+            "city": "Charlotte",
             "state": "NC",
             "country": "USA",
-            "postal_code": "28202",
+            "postal_code": "28227",
             "coordinates": {
                 "latitude": 35.2271,
                 "longitude": -80.8431
