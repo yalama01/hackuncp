@@ -1,3 +1,4 @@
+from logging import warning
 from typing import List
 from openai import OpenAI
 import os
@@ -5,14 +6,17 @@ from dotenv import load_dotenv
 import ast
 
 #load variables from .env
+
 load_dotenv()
 
 try:
     openai_api_key = os.getenv("OPENAI_API_KEY")
     client = OpenAI(api_key=openai_api_key)
-except:
+except Exception as e:
+    print(e)
     openai_api_key = None
     client = None
+    warning("NO ENV OPENAI_API_KEY found!!")
 
 
 def get_job_title_list(event_summary: str)-> List[str]:
