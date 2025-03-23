@@ -1,6 +1,7 @@
 from typing import List, Dict
 import requests
 
+#location format: "Austin, Texas, United States"
 def find_people(job_titles:List[str], location):
     information = [{}]
     """
