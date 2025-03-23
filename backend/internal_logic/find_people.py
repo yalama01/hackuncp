@@ -6,7 +6,8 @@ from datetime import datetime
 from peopledatalabs import PDLPY
 from dotenv import load_dotenv
 import os
-
+from typing import List
+import sqlite3
 from backend.internal_logic.models import Person
 
 #get key
@@ -18,12 +19,30 @@ except:
     CLIENT = None
 
 #Helper func
-def build_sql_query(job_titles: List[str], location: str) -> str:
-    title_conditions = " OR ".join([f"job_title='{title}'" for title in job_titles])
+from typing import List
+
+from typing import List
+
+
+def build_sql_query(job_titles: List[str], location) -> str:
+    if not job_titles:
+        raise ValueError("Job title list cannot be empty.")
+
+    # Safely format job titles using SQL escaping
+    safe_titles = []
+    for title in job_titles:
+        # Properly escape single quotes by doubling them
+        escaped_title = title.replace("'", "''")
+        safe_titles.append(f"'{escaped_title}'")
+
+    job_titles_str = ", ".join(safe_titles)
+
+    # Using the correct column names from the error message
     query = f"""
     SELECT * FROM person
-    WHERE location_name='{location}'
-    AND ({title_conditions});
+    WHERE countries = '{location.country.replace("'", "''")}' 
+    AND location_postal_code = '{location.postal_code.replace("'", "''")}' 
+    AND job_title IN ({job_titles_str});
     """
     return query
 
@@ -39,6 +58,7 @@ def days_since(date_str: str) -> int:
 
 def find_people(job_titles: List[str], location: str):
     sql_query = build_sql_query(job_titles, location)
+    print(sql_query)
 
     params = {
         'sql': sql_query,
