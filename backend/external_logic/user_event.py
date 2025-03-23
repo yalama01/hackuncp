@@ -1,10 +1,11 @@
 #starts the backend engine
 from fastapi import APIRouter
-from models.event_model import EventLocationRequest
+
+from backend.internal_logic.models import EventLocationRequest
 
 router = APIRouter()
 
-@router.post("/event/location")
+@router.post("/event/")
 async def submit_event_location(event: EventLocationRequest):
     return {
         "message": "Event location received",
