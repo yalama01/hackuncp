@@ -12,5 +12,5 @@ app.include_router(router, prefix="/api", tags=["Project Proposal"])
 # Main entry point
 if __name__ == "__main__":
     print("HELLO??")
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, port=8000)
     print("running?")
