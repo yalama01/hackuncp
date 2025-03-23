@@ -18,6 +18,10 @@ except Exception as e:
     client = None
     warning("NO ENV OPENAI_API_KEY found!!")
 
+def description_good(event_summary: str) -> str:
+    result = check_description(event_summary)
+    return None if result == "1" else result
+
 
 def check_description(event_summary: str)-> List[str]:
 
