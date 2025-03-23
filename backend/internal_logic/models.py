@@ -1,6 +1,5 @@
-from dataclasses import field
-from typing import Optional, Dict
-
+from dataclasses import field, dataclass, asdict
+from typing import Optional, Dict, List, Tuple
 from pydantic import BaseModel
 
 class EventLocationRequest(BaseModel):
@@ -9,13 +8,46 @@ class EventLocationRequest(BaseModel):
 
 @dataclass
 class Person:
-    name: Optional[str] = field(default=None)
-    raw: Optional[str] = field(default=None)
-    json_raw: Optional[Dict] = field(default=None)
-    job_title: Optional[str] = field(default=None)
-    score: Optional[int] = field(default=None)
-    bio: Optional[str] = field(default=None)
-    email: Optional[str] = field(default=None)
+    name: str
+    location: str
+    current_job_title: str
+    company_name: str
+    industry: str
+    skills: List[str] = field(default_factory=list)
+    interests: List[str] = field(default_factory=list)
+    summary: str = ""
+    emails: List[str] = field(default_factory=list)
+    phone_numbers: List[str] = field(default_factory=list)
+    linkedin: str = ""
+    past_job_title: List[Tuple[str, int]] = field(default_factory=list)
+
+    def __init__(
+        self,
+        name: str,
+        location: str,
+        current_job_title: str,
+        company_name: str,
+        industry: str,
+        skills: List[str],
+        interests: List[str],
+        summary: str,
+        emails: List[str],
+        phone_numbers: List[str],
+        linkedin: str,
+        past_job_title: List[Tuple[str, int]]
+    ):
+        self.name = name
+        self.location = location
+        self.current_job_title = current_job_title
+        self.company_name = company_name
+        self.industry = industry
+        self.skills = skills
+        self.interests = interests
+        self.summary = summary
+        self.emails = emails
+        self.phone_numbers = phone_numbers
+        self.linkedin = linkedin
+        self.past_job_title = past_job_title
 
     def __post_init__(self):
         # Ensure json_raw is always a dictionary or None
