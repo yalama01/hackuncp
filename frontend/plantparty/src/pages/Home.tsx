@@ -16,10 +16,12 @@ import {
   CircularProgress,
   Paper,
   Alert,
+  IconButton,
 } from '@mui/material';
 import LinkedInIcon from '@mui/icons-material/LinkedIn';
 import EditIcon from '@mui/icons-material/Edit';
 import SendIcon from '@mui/icons-material/Send';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import { motion } from 'framer-motion';
 import LinkedInAuth from '../components/LinkedInAuth';
 import { submitProjectProposal } from '../services/api';
@@ -34,6 +36,7 @@ interface Person {
   linkedinUrl: string;
   suggestedMessage: string;
   isConnected?: boolean;
+  matchScore: number;
 }
 
 const mockPeople: Person[] = [
@@ -46,6 +49,7 @@ const mockPeople: Person[] = [
     bio: 'Leading sustainability initiatives and helping organizations transition to greener practices. Specialized in renewable energy and circular economy solutions.',
     linkedinUrl: 'https://linkedin.com/in/sarah-chen',
     suggestedMessage: 'Hi Sarah, I noticed your work in renewable energy at GreenTech Solutions. I\'m working on a similar project and would love to connect about potential collaboration opportunities.',
+    matchScore: 92,
   },
   {
     id: '2',
@@ -56,6 +60,7 @@ const mockPeople: Person[] = [
     bio: 'Environmental consultant with expertise in sustainable agriculture and water resource management. Helping businesses implement eco-friendly practices.',
     linkedinUrl: 'https://linkedin.com/in/michael-rodriguez',
     suggestedMessage: 'Hello Michael, I saw your recent work in sustainable agriculture at EcoConsult. I\'m developing a similar initiative and would value your insights.',
+    matchScore: 78,
   },
 ];
 
@@ -234,6 +239,12 @@ const Home = () => {
     setEditRequest('');
   };
 
+  const getMatchColor = (score: number) => {
+    if (score >= 80) return '#4caf50'; // Green
+    if (score >= 60) return '#ff9800'; // Orange
+    return '#f44336'; // Red
+  };
+
   return (
     <Container maxWidth="lg">
       <Typography variant="h2" gutterBottom sx={{ textAlign: 'center', mb: 4 }}>
@@ -345,11 +356,30 @@ const Home = () => {
               component={motion.div}
               whileHover={{ y: -5 }}
               transition={{ duration: 0.2 }}
+              sx={{ cursor: 'pointer' }}
+              onClick={() => handlePersonClick(person)}
             >
               <CardContent>
-                <Typography variant="h5" gutterBottom>
-                  {person.name}
-                </Typography>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                  <Typography variant="h5">
+                    {person.name}
+                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Typography variant="body2" color="text.secondary">
+                      {person.matchScore}%
+                    </Typography>
+                    <Box sx={{ width: 40, height: 4, bgcolor: 'grey.200', borderRadius: 1, overflow: 'hidden' }}>
+                      <Box
+                        sx={{
+                          width: `${person.matchScore}%`,
+                          height: '100%',
+                          bgcolor: getMatchColor(person.matchScore),
+                          transition: 'width 0.3s ease-in-out',
+                        }}
+                      />
+                    </Box>
+                  </Box>
+                </Box>
                 <Typography color="text.secondary" gutterBottom>
                   {person.role} at {person.organization}
                 </Typography>
@@ -366,14 +396,9 @@ const Home = () => {
                   href={person.linkedinUrl}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
                 >
                   View Profile
-                </Button>
-                <Button
-                  startIcon={<EditIcon />}
-                  onClick={() => handlePersonClick(person)}
-                >
-                  Draft Message
                 </Button>
                 {person.isConnected && (
                   <Typography color="success.main">
@@ -390,60 +415,81 @@ const Home = () => {
       <Dialog
         open={!!selectedPerson}
         onClose={() => setSelectedPerson(null)}
-        maxWidth="md"
+        maxWidth="sm"
         fullWidth
+        PaperProps={{
+          sx: {
+            maxHeight: '90vh',
+            width: '100%',
+            maxWidth: '500px',
+          }
+        }}
       >
         <DialogTitle>
-          Draft Message for {selectedPerson?.name}
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+            <Box>
+              <Typography variant="h5" gutterBottom>
+                {selectedPerson?.name}
+              </Typography>
+              <Typography variant="subtitle1" color="text.secondary">
+                {selectedPerson?.role} at {selectedPerson?.organization}
+              </Typography>
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Typography variant="body2" color="text.secondary">
+                {selectedPerson?.matchScore}%
+              </Typography>
+              <Box sx={{ width: 60, height: 4, bgcolor: 'grey.200', borderRadius: 1, overflow: 'hidden' }}>
+                <Box
+                  sx={{
+                    width: `${selectedPerson?.matchScore}%`,
+                    height: '100%',
+                    bgcolor: getMatchColor(selectedPerson?.matchScore || 0),
+                    transition: 'width 0.3s ease-in-out',
+                  }}
+                />
+              </Box>
+            </Box>
+          </Box>
         </DialogTitle>
         <DialogContent>
-          <Paper
-            elevation={0}
-            sx={{
-              p: 2,
-              mb: 2,
-              bgcolor: 'background.default',
-              border: '1px solid',
-              borderColor: 'divider',
-              borderRadius: 1,
-            }}
-          >
-            <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
-              {messageEdit}
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="h6" gutterBottom>
+              About
             </Typography>
-          </Paper>
-
-          <TextField
-            fullWidth
-            multiline
-            rows={3}
-            label="How would you like to modify this message?"
-            value={editRequest}
-            onChange={(e) => setEditRequest(e.target.value)}
-            placeholder="Example: Make it more formal, focus on their expertise in renewable energy..."
-            sx={{ mb: 2 }}
-          />
+            <Typography variant="body1" paragraph>
+              {selectedPerson?.bio}
+            </Typography>
+          </Box>
+          <Box>
+            <Typography variant="h6" gutterBottom>
+              Suggested Message
+            </Typography>
+            <Box sx={{ position: 'relative' }}>
+              <TextField
+                fullWidth
+                multiline
+                rows={6}
+                value={messageEdit}
+                onChange={(e) => setMessageEdit(e.target.value)}
+                variant="outlined"
+                sx={{ mb: 1 }}
+              />
+              <IconButton
+                onClick={() => navigator.clipboard.writeText(messageEdit)}
+                sx={{
+                  position: 'absolute',
+                  right: 8,
+                  top: 8,
+                }}
+              >
+                <ContentCopyIcon />
+              </IconButton>
+            </Box>
+          </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setSelectedPerson(null)}>Cancel</Button>
-          <Button
-            variant="contained"
-            onClick={handleMessageUpdate}
-            disabled={!editRequest}
-          >
-            Update Message
-          </Button>
-          {selectedPerson && !selectedPerson.isConnected && (
-            <Button
-              variant="contained"
-              color="primary"
-              startIcon={isConnecting ? <CircularProgress size={20} /> : <SendIcon />}
-              onClick={() => handleConnectAndSend(selectedPerson)}
-              disabled={isConnecting || !isAuthenticated}
-            >
-              Connect & Send
-            </Button>
-          )}
+          <Button onClick={() => setSelectedPerson(null)}>Close</Button>
         </DialogActions>
       </Dialog>
     </Container>
