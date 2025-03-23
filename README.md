@@ -13,13 +13,6 @@ The project has two main parts:
 ## 🎯 Key Features
 
 ### Backend
-<<<<<<< Updated upstream
-- Create a
-
-`uvicorn backend.main:app --host 0.0.0.0 --port 8001 --reload
-
-`
-=======
 - 🌍 **Location-based people finder** using PeopleDataLabs API.
 - ✍️ **AI-generated bios & email drafts** with OpenAI GPT-4o integration.
 - 🧠 **Relevance scoring** to prioritize contacts most aligned with your project.
