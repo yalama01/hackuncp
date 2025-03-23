@@ -5,4 +5,5 @@ def make_bio(person: Person)->str:
     person.name
     person.raw
     summary = ""
+    person.bio = summary
     return summary

@@ -13,6 +13,7 @@ async def submit_event_location(event: EventLocationRequest):
     people = find_people(job_titles)
     relevancy_scores = [rate_relevancy(person) for person in people]
     summarize_bios = [make_bio(person) for person in people]
+    email = [make_email(person) for person in people]
 
 
 
