@@ -1,2 +1,4 @@
-# hackuncp
-hehe
+# Plant Planner
+🌱 Easy 
+
+## Todo
