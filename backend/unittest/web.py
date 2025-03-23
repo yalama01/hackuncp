@@ -28,9 +28,10 @@ def test_submit_event_location():
     }
 
     # Send a POST request to the endpoint
-    response = client.post("/api/project/proposal", json=payload)
+    response = client.post("/project/proposal", json=payload)
 
     # Assertions
+
     data = response.json()
     print(data)
 

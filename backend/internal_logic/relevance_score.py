@@ -1,15 +1,32 @@
+from idlelib.configdialog import is_int
 from typing import List
 from openai import OpenAI
 import os
 from dotenv import load_dotenv
 import ast
 
+from backend.internal_logic.models import Person
 
 #load variables from .env
 load_dotenv()
 
 openai_api_key = os.getenv("OPENAI_API_KEY")
 client = OpenAI(api_key=openai_api_key)
+def make_score(person: Person, event_summary: str) -> int:
+    person.score = get_relevance_score(event_summary,person.summary)
+    if is_int(person.score):
+        return person.score
+    else:
+        person.score = get_relevance_score(event_summary, person.summary)
+        if is_int(person.score):
+            return person.score
+        else:
+            person.score = get_relevance_score(event_summary, person.summary)
+            if is_int(person.score):
+                return person.score
+            else:
+                person.score = 0
+                return person.score
 
 def get_relevance_score(event_summary: str, person_summary: str) -> int:
     prompt = f"""
