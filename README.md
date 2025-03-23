@@ -20,7 +20,8 @@ The project has two main parts:
 
 ### Frontend
 - 🖥️ **Networking portal** with sustainability professionals.
-- 📚 **Resource library** with articles, courses, and videos on environmental topics.
+- 📚 **Resource library** with articles, courses, and videos on environmental topics. (coming soon)
+- 💰 **Finding grant resorces** and maching users with grants for their projects. (coming soon)
 - 📨 **Message drafting tool** for professional outreach via LinkedIn.
 - 🧩 **Profile management** with interest & skill tags.
 - 🔔 **Smart notifications** (coming soon).
