@@ -1,5 +1,5 @@
 
-# 🌱 Plant Planner & PlantParty Platform
+# 🌱 Fertilizer Platform
 
 A full-stack web application aimed at connecting sustainability-focused community projects with relevant professionals and stakeholders. 
 
