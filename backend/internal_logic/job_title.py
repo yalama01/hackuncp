@@ -7,8 +7,12 @@ import ast
 #load variables from .env
 load_dotenv()
 
-openai_api_key = os.getenv("OPENAI_API_KEY")
-client = OpenAI(api_key=openai_api_key)
+try:
+    openai_api_key = os.getenv("OPENAI_API_KEY")
+    client = OpenAI(api_key=openai_api_key)
+except:
+    openai_api_key = None
+    client = None
 
 
 def get_job_title_list(event_summary: str)-> List[str]:
@@ -58,4 +62,4 @@ def get_job_title_list(event_summary: str)-> List[str]:
 
 event_summary = "We are organizing a community-led initiative to transform an abandoned lot into a green space that includes a community garden, native plant landscaping, and educational signage about local ecology. The goal is to improve food access, promote environmental awareness, and create a safe, beautiful space for residents to gather. We are seeking support with land use approvals, funding, volunteer coordination, and long-term maintenance partnerships."
 
-print(get_job_title_list(event_summary))
+#print(get_job_title_list(event_summary))

@@ -1,16 +1,21 @@
+from logging import warning
 from typing import List, Dict
 import json
 from dataclasses import asdict
 from datetime import datetime
-from models import Person
 from peopledatalabs import PDLPY
 from dotenv import load_dotenv
 import os
 
+from backend.internal_logic.models import Person
+
 #get key
 load_dotenv()
 pdl_api_key = os.getenv("PDL_API_KEY")
-CLIENT = PDLPY(api_key=pdl_api_key)
+try:
+    CLIENT = PDLPY(api_key=pdl_api_key)
+except:
+    CLIENT = None
 
 #Helper func
 def build_sql_query(job_titles: List[str], location: str) -> str:
@@ -123,4 +128,4 @@ job_titles = [
 
 location = "charlotte, north carolina, united states"
 
-find_people(job_titles, location)
+#find_people(job_titles, location)
