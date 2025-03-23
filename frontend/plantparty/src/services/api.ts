@@ -12,17 +12,17 @@ interface Location {
 }
 
 interface ProjectProposal {
-  event_summary: string;
+  project_overview: string;
   location: Location;
 }
 
 const api = axios.create({
-  baseURL: 'http://localhost:8000', // Update this with your actual API base URL
+  baseURL: 'http://0.0.0.0:8001', // Backend API URL
 });
 
 export const submitProjectProposal = async (proposal: ProjectProposal) => {
   try {
-    const response = await api.post('/project/proposal', proposal);
+    const response = await api.post('/api/project/proposal', proposal);
     return response.data;
   } catch (error) {
     console.error('Error submitting project proposal:', error);

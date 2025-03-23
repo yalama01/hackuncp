@@ -120,22 +120,31 @@ const Home = () => {
   };
 
   const handleSubmit = async () => {
-    if (!idea || !selectedPlace) {
+    if (!idea || !addressInput) {
       setSubmitStatus('Please fill in all required fields');
       return;
     }
-
-    // Parse location components from Photon response
-    const props = selectedPlace?.properties || {};
-    const lat = selectedPlace?.geometry?.coordinates[1];
-    const lng = selectedPlace?.geometry?.coordinates[0];
 
     setIsSubmitting(true);
     setSubmitStatus(null);
 
     try {
+      // First validate the location with Photon API
+      const validationResponse = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(addressInput)}&limit=1`);
+      const validationData = await validationResponse.json();
+
+      if (!validationData.features || validationData.features.length === 0) {
+        setSubmitStatus('Invalid location. Please select a location from the suggestions.');
+        return;
+      }
+
+      const validatedPlace = validationData.features[0];
+      const props = validatedPlace.properties || {};
+      const lat = validatedPlace.geometry?.coordinates[1];
+      const lng = validatedPlace.geometry?.coordinates[0];
+
       const proposal = {
-        event_summary: idea,
+        project_overview: idea,
         location: {
           city: props.city || '',
           state: props.state || '',
