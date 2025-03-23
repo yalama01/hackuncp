@@ -23,6 +23,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import SendIcon from '@mui/icons-material/Send';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import { motion } from 'framer-motion';
+import Markdown from 'markdown-to-jsx';
 import LinkedInAuth from '../components/LinkedInAuth';
 import { submitProjectProposal } from '../services/api';
 
@@ -81,6 +82,40 @@ const Home = () => {
   const [isConnecting, setIsConnecting] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<string | null>(null);
   const [isCooldown, setIsCooldown] = useState(false);
+
+  // Custom Markdown options for styling
+  const markdownOptions = {
+    overrides: {
+      h1: {
+        component: Typography,
+        props: {
+          variant: 'h4',
+          gutterBottom: true,
+        },
+      },
+      h2: {
+        component: Typography,
+        props: {
+          variant: 'h5',
+          gutterBottom: true,
+        },
+      },
+      h3: {
+        component: Typography,
+        props: {
+          variant: 'h6',
+          gutterBottom: true,
+        },
+      },
+      p: {
+        component: Typography,
+        props: {
+          variant: 'body2',
+          paragraph: true,
+        },
+      },
+    },
+  };
 
   // ────────────────────────────────────────────────────────────────────────────
   //  Fetch suggestions from Photon
@@ -168,9 +203,28 @@ const Home = () => {
         },
       };
 
-      await submitProjectProposal(proposal);
-      setSubmitStatus('Project proposal submitted successfully!');
-      setPeople(mockPeople);
+      const response = await submitProjectProposal(proposal);
+      
+      // Check if response contains feedback
+      if ('feedback' in response) {
+        setSubmitStatus(response.feedback);
+        setPeople([]);
+      } else {
+        // Handle people list response
+        setSubmitStatus('Project proposal submitted successfully!');
+        const transformedPeople = response.people_list.map((person, index) => ({
+          id: index.toString(),
+          name: person.name,
+          role: person.current_job_title || 'Professional',
+          organization: person.company_name || 'Organization',
+          location: person.location || 'Location not specified',
+          bio: person.bio || '',
+          linkedinUrl: person.linkedin_url || '#',
+          suggestedMessage: person.email_draft || 'Hello, I would like to connect regarding a sustainability project.',
+          matchScore: person.score || 0,
+        }));
+        setPeople(transformedPeople);
+      }
       
       // Start cooldown
       setIsCooldown(true);
@@ -248,7 +302,7 @@ const Home = () => {
   return (
     <Container maxWidth="lg">
       <Typography variant="h2" gutterBottom sx={{ textAlign: 'center', mb: 4 }}>
-        Find Your Sustainability Network
+        Grow Your Sustainability Network
       </Typography>
 
       <Box sx={{ display: 'flex', justifyContent: 'center', mb: 4 }}>
@@ -265,10 +319,10 @@ const Home = () => {
           fullWidth
           multiline
           rows={3}
-          label="Describe your sustainability idea or project"
+          label="What's your sustainability idea?"
           value={idea}
           onChange={(e) => setIdea(e.target.value)}
-          placeholder="Example: A super awesome community garden 20sq ft"
+          placeholder="Example: Build a beautiful community garden to help broaden access to fresh produce, educate about sustainable farming practices, and create a green gathering space for our neighborhood."
           required
         />
 
@@ -329,7 +383,7 @@ const Home = () => {
           disabled={isSubmitting || isCooldown}
           startIcon={isSubmitting ? <CircularProgress size={20} /> : <SendIcon />}
         >
-          {isSubmitting ? 'Submitting...' : isCooldown ? 'Please wait...' : 'Submit Project Proposal'}
+          {isSubmitting ? 'Growing...' : isCooldown ? 'Please wait...' : 'Grow My Idea'}
         </Button>
       </Box>
 
@@ -351,61 +405,104 @@ const Home = () => {
       {/* Results Grid */}
       <Grid container spacing={3}>
         {people.map((person) => (
-          <Grid item xs={12} md={6} key={person.id}>
+          <Grid item xs={12} key={person.id}>
             <Card
               component={motion.div}
               whileHover={{ y: -5 }}
               transition={{ duration: 0.2 }}
-              sx={{ cursor: 'pointer' }}
-              onClick={() => handlePersonClick(person)}
             >
               <CardContent>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
-                  <Typography variant="h5">
-                    {person.name}
-                  </Typography>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Typography variant="body2" color="text.secondary">
-                      {person.matchScore}%
-                    </Typography>
-                    <Box sx={{ width: 40, height: 4, bgcolor: 'grey.200', borderRadius: 1, overflow: 'hidden' }}>
-                      <Box
-                        sx={{
-                          width: `${person.matchScore}%`,
-                          height: '100%',
-                          bgcolor: getMatchColor(person.matchScore),
-                          transition: 'width 0.3s ease-in-out',
-                        }}
-                      />
+                <Grid container spacing={3}>
+                  {/* Person Info Section */}
+                  <Grid item xs={12} md={6}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                      <Typography variant="h5">
+                        {person.name}
+                      </Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Typography variant="body2" color="text.secondary">
+                          Match Score: {person.matchScore}%
+                        </Typography>
+                        <Box sx={{ width: 40, height: 4, bgcolor: 'grey.200', borderRadius: 1, overflow: 'hidden' }}>
+                          <Box
+                            sx={{
+                              width: `${person.matchScore}%`,
+                              height: '100%',
+                              bgcolor: getMatchColor(person.matchScore),
+                              transition: 'width 0.3s ease-in-out',
+                            }}
+                          />
+                        </Box>
+                      </Box>
                     </Box>
-                  </Box>
-                </Box>
-                <Typography color="text.secondary" gutterBottom>
-                  {person.role} at {person.organization}
-                </Typography>
-                <Typography variant="body2" color="text.secondary" gutterBottom>
-                  {person.location}
-                </Typography>
-                <Typography variant="body2" paragraph>
-                  {person.bio}
-                </Typography>
+                    <Typography color="text.secondary" gutterBottom>
+                      {person.role} at {person.organization}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" gutterBottom>
+                      {person.location}
+                    </Typography>
+                    <Box sx={{ mb: 2 }}>
+                      <Markdown options={markdownOptions}>
+                        {person.bio}
+                      </Markdown>
+                    </Box>
+                    <Box sx={{ mt: 2 }}>
+                      <Button
+                        startIcon={<LinkedInIcon />}
+                        href={person.linkedinUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        View Profile
+                      </Button>
+                      {person.isConnected && (
+                        <Typography color="success.main" sx={{ display: 'inline-block', ml: 2 }}>
+                          ✓ Connected
+                        </Typography>
+                      )}
+                    </Box>
+                  </Grid>
+
+                  {/* Email Draft Section */}
+                  <Grid item xs={12} md={6}>
+                    <Box sx={{ height: '100%' }}>
+                      <Typography variant="h6" gutterBottom>
+                        Suggested Message
+                      </Typography>
+                      <Box sx={{ position: 'relative' }}>
+                        <TextField
+                          fullWidth
+                          multiline
+                          rows={8}
+                          value={person.suggestedMessage}
+                          onChange={(e) => {
+                            setPeople(prevPeople =>
+                              prevPeople.map(p =>
+                                p.id === person.id
+                                  ? { ...p, suggestedMessage: e.target.value }
+                                  : p
+                              )
+                            );
+                          }}
+                          variant="outlined"
+                          sx={{ mb: 1 }}
+                        />
+                        <IconButton
+                          onClick={() => navigator.clipboard.writeText(person.suggestedMessage)}
+                          sx={{
+                            position: 'absolute',
+                            right: 8,
+                            top: 8,
+                          }}
+                          title="Copy to clipboard"
+                        >
+                          <ContentCopyIcon />
+                        </IconButton>
+                      </Box>
+                    </Box>
+                  </Grid>
+                </Grid>
               </CardContent>
-              <CardActions>
-                <Button
-                  startIcon={<LinkedInIcon />}
-                  href={person.linkedinUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  View Profile
-                </Button>
-                {person.isConnected && (
-                  <Typography color="success.main">
-                    ✓ Connected
-                  </Typography>
-                )}
-              </CardActions>
             </Card>
           </Grid>
         ))}
@@ -457,9 +554,11 @@ const Home = () => {
             <Typography variant="h6" gutterBottom>
               About
             </Typography>
-            <Typography variant="body1" paragraph>
-              {selectedPerson?.bio}
-            </Typography>
+            <Box sx={{ mb: 2 }}>
+              <Markdown options={markdownOptions}>
+                {selectedPerson?.bio || ''}
+              </Markdown>
+            </Box>
           </Box>
           <Box>
             <Typography variant="h6" gutterBottom>

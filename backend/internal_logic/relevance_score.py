@@ -13,22 +13,22 @@ load_dotenv()
 openai_api_key = os.getenv("OPENAI_API_KEY")
 client = OpenAI(api_key=openai_api_key)
 def make_score(person: Person, event_summary: str) -> int:
-    person.score = get_relevance_score(event_summary,person.summary)
+    person.score = get_relevance_score(event_summary,person.bio)
     if is_int(person.score):
         return person.score
     else:
-        person.score = get_relevance_score(event_summary, person.summary)
+        person.score = get_relevance_score(event_summary, person.bio)
         if is_int(person.score):
             return person.score
         else:
-            person.score = get_relevance_score(event_summary, person.summary)
+            person.score = get_relevance_score(event_summary, person.bio)
             if is_int(person.score):
                 return person.score
             else:
                 person.score = 0
                 return person.score
 
-def get_relevance_score(event_summary: str, person_summary: str) -> int:
+def get_relevance_score(event_summary: str, bio: str) -> int:
     prompt = f"""
         You are helping evaluate the relevance of potential contacts for a sustainability-related community project.
 
@@ -50,8 +50,9 @@ def get_relevance_score(event_summary: str, person_summary: str) -> int:
         {event_summary}
 
         Person Summary:
-        {person_summary}
+        {bio}
         """
+    print(prompt)
 
     response = client.chat.completions.create(model="gpt-4o",
     messages=[
@@ -62,7 +63,7 @@ def get_relevance_score(event_summary: str, person_summary: str) -> int:
 
     content = response.choices[0].message.content
 
-    return int(content)
+    return content
 
 if __name__ == "__main__":
     event_summary = "We are organizing a community-led initiative to transform an abandoned lot into a green space that includes a community garden, native plant landscaping, and educational signage about local ecology. The goal is to improve food access, promote environmental awareness, and create a safe, beautiful space for residents to gather. We are seeking support with land use approvals, funding, volunteer coordination, and long-term maintenance partnerships."

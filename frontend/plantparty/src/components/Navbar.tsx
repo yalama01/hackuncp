@@ -18,7 +18,7 @@ const Navbar = () => {
             fontWeight: 700,
           }}
         >
-          PlantParty
+          Fertilizer
         </Typography>
       </Toolbar>
     </AppBar>
