@@ -1,3 +1,35 @@
 frontend/plantparty/node_modules
 .env*
 __pycache__*
+
+# Ignore environment files
+.env*
+.envrc
+*.env
+
+# Ignore Python cache and compiled files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ignore VSCode settings
+.vscode/
+*.code-workspace
+
+# Ignore PyCharm settings
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Ignore node modules
+frontend/plantparty/node_modules/
+
+# Ignore IDE-specific backups and metadata
+*.swp
+*.swo
+*~
+
+# Ignore macOS system files
+.DS_Store
