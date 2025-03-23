@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
   Container,
   Typography,
@@ -13,16 +13,12 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  IconButton,
-  Tooltip,
   CircularProgress,
   Paper,
   Alert,
 } from '@mui/material';
-import SearchIcon from '@mui/icons-material/Search';
-import LocationOnIcon from '@mui/icons-material/LocationOn';
-import EditIcon from '@mui/icons-material/Edit';
 import LinkedInIcon from '@mui/icons-material/LinkedIn';
+import EditIcon from '@mui/icons-material/Edit';
 import SendIcon from '@mui/icons-material/Send';
 import { motion } from 'framer-motion';
 import LinkedInAuth from '../components/LinkedInAuth';
@@ -65,15 +61,13 @@ const mockPeople: Person[] = [
 
 const Home = () => {
   const [idea, setIdea] = useState('');
-  const [city, setCity] = useState('');
-  const [state, setState] = useState('');
-  const [country, setCountry] = useState('');
-  const [postalCode, setPostalCode] = useState('');
-  const [latitude, setLatitude] = useState('');
-  const [longitude, setLongitude] = useState('');
+  
+  const [addressInput, setAddressInput] = useState('');
+  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [selectedPlace, setSelectedPlace] = useState<any>(null);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<string | null>(null);
-  const [isSearching, setIsSearching] = useState(false);
   const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
   const [messageEdit, setMessageEdit] = useState('');
   const [editRequest, setEditRequest] = useState('');
@@ -82,11 +76,59 @@ const Home = () => {
   const [isConnecting, setIsConnecting] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<string | null>(null);
 
+  // ────────────────────────────────────────────────────────────────────────────
+  //  Fetch suggestions from Photon
+  //    - Called whenever the user types in the address text field
+  // ────────────────────────────────────────────────────────────────────────────
+  const fetchSuggestions = async (query: string) => {
+    if (!query) {
+      setSuggestions([]);
+      return;
+    }
+    try {
+      // Example: limit=5 => at most 5 suggestions
+      const response = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=5`);
+      const data = await response.json();
+      setSuggestions(data.features || []);
+    } catch (error) {
+      console.error('Error fetching suggestions from Photon:', error);
+      setSuggestions([]);
+    }
+  };
+
+  const handleSelectSuggestion = (feature: any) => {
+    setSelectedPlace(feature);
+    
+    // You might want to show the full address in the TextField
+    const placeName = feature?.properties?.name || '';
+    const city = feature?.properties?.city || '';
+    const state = feature?.properties?.state || '';
+    const country = feature?.properties?.country || '';
+    
+    // Combine them into a user-friendly string
+    const fullAddress = [placeName, city, state, country].filter(Boolean).join(', ');
+    setAddressInput(fullAddress);
+
+    // Clear suggestions after selection
+    setSuggestions([]);
+  };
+
+  const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setAddressInput(value);
+    fetchSuggestions(value);
+  };
+
   const handleSubmit = async () => {
-    if (!idea || !city || !state || !country || !postalCode || !latitude || !longitude) {
+    if (!idea || !selectedPlace) {
       setSubmitStatus('Please fill in all required fields');
       return;
     }
+
+    // Parse location components from Photon response
+    const props = selectedPlace?.properties || {};
+    const lat = selectedPlace?.geometry?.coordinates[1];
+    const lng = selectedPlace?.geometry?.coordinates[0];
 
     setIsSubmitting(true);
     setSubmitStatus(null);
@@ -95,40 +137,26 @@ const Home = () => {
       const proposal = {
         event_summary: idea,
         location: {
-          city,
-          state,
-          country,
-          postal_code: postalCode,
+          city: props.city || '',
+          state: props.state || '',
+          country: props.country || '',
+          postal_code: props.postcode || '',
           coordinates: {
-            latitude: parseFloat(latitude),
-            longitude: parseFloat(longitude),
+            latitude: lat || 0,
+            longitude: lng || 0,
           },
         },
       };
 
       await submitProjectProposal(proposal);
       setSubmitStatus('Project proposal submitted successfully!');
-      handleSearch(); // Search for potential collaborators
+      setPeople(mockPeople);
     } catch (error) {
       console.error('Error submitting project proposal:', error);
       setSubmitStatus('Failed to submit project proposal. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const handleSearch = async () => {
-    setIsSearching(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    setPeople(mockPeople);
-    setIsSearching(false);
-  };
-
-  const handlePersonClick = (person: Person) => {
-    setSelectedPerson(person);
-    setMessageEdit(person.suggestedMessage);
-    setEditRequest('');
   };
 
   const handleMessageUpdate = () => {
@@ -147,7 +175,7 @@ const Home = () => {
   };
 
   const handleLinkedInAuth = async () => {
-    // Simulate LinkedIn authentication
+    // Simulating LinkedIn OAuth flow
     await new Promise(resolve => setTimeout(resolve, 1500));
     setIsAuthenticated(true);
   };
@@ -160,9 +188,8 @@ const Home = () => {
 
     setIsConnecting(true);
     try {
-      // Simulate API calls for connecting and sending message
+      // Simulate an API call to connect and send a message
       await new Promise(resolve => setTimeout(resolve, 2000));
-      
       setPeople(prevPeople =>
         prevPeople.map(p =>
           p.id === person.id
@@ -170,7 +197,6 @@ const Home = () => {
             : p
         )
       );
-      
       setConnectionStatus(`Successfully connected with ${person.name} and sent message`);
     } catch (error) {
       setConnectionStatus('Failed to connect. Please try again.');
@@ -179,28 +205,28 @@ const Home = () => {
     }
   };
 
+  // Handler for opening the dialog and prepping the message
+  const handlePersonClick = (person: Person) => {
+    setSelectedPerson(person);
+    setMessageEdit(person.suggestedMessage);
+    setEditRequest('');
+  };
+
   return (
     <Container maxWidth="lg">
       <Typography variant="h2" gutterBottom sx={{ textAlign: 'center', mb: 4 }}>
         Find Your Sustainability Network
       </Typography>
 
-      {/* LinkedIn Auth */}
       <Box sx={{ display: 'flex', justifyContent: 'center', mb: 4 }}>
         <LinkedInAuth onAuth={handleLinkedInAuth} isAuthenticated={isAuthenticated} />
       </Box>
 
-      {/* Project Proposal Form */}
       <Box
         component={motion.div}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 2,
-          mb: 4,
-        }}
+        sx={{ display: 'flex', flexDirection: 'column', gap: 2, mb: 4 }}
       >
         <TextField
           fullWidth
@@ -212,71 +238,56 @@ const Home = () => {
           placeholder="Example: A super awesome community garden 20sq ft"
           required
         />
-        
-        <Grid container spacing={2}>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label="City"
-              value={city}
-              onChange={(e) => setCity(e.target.value)}
-              placeholder="Charlotte"
-              required
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label="State"
-              value={state}
-              onChange={(e) => setState(e.target.value)}
-              placeholder="NC"
-              required
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label="Country"
-              value={country}
-              onChange={(e) => setCountry(e.target.value)}
-              placeholder="USA"
-              required
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label="Postal Code"
-              value={postalCode}
-              onChange={(e) => setPostalCode(e.target.value)}
-              placeholder="28202"
-              required
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label="Latitude"
-              value={latitude}
-              onChange={(e) => setLatitude(e.target.value)}
-              placeholder="35.2271"
-              type="number"
-              required
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label="Longitude"
-              value={longitude}
-              onChange={(e) => setLongitude(e.target.value)}
-              placeholder="-80.8431"
-              type="number"
-              required
-            />
-          </Grid>
-        </Grid>
+
+        <Box sx={{ position: 'relative' }}>
+          <TextField
+            fullWidth
+            label="Search Address (via Photon)"
+            placeholder="Type an address or place..."
+            value={addressInput}
+            onChange={handleAddressChange}
+          />
+
+          {/* Display suggestions in a simple dropdown */}
+          {suggestions.length > 0 && (
+            <Paper
+              sx={{
+                position: 'absolute',
+                zIndex: 999,
+                width: '100%',
+                maxHeight: 300,
+                overflowY: 'auto',
+              }}
+              elevation={3}
+            >
+              {suggestions.map((feature, index) => {
+                const props = feature.properties;
+                const displayName = [
+                  props.name,
+                  props.city,
+                  props.state,
+                  props.country
+                ]
+                  .filter(Boolean)
+                  .join(', ');
+                return (
+                  <Box
+                    key={index}
+                    sx={{
+                      p: 1,
+                      borderBottom: '1px solid #ddd',
+                      cursor: 'pointer',
+                      ':hover': { backgroundColor: '#f0f0f0' },
+                    }}
+                    onClick={() => handleSelectSuggestion(feature)}
+                  >
+                    {displayName}
+                  </Box>
+                );
+              })}
+            </Paper>
+          )}
+        </Box>
 
         <Button
           variant="contained"
@@ -290,7 +301,10 @@ const Home = () => {
       </Box>
 
       {submitStatus && (
-        <Alert severity={submitStatus.includes('success') ? 'success' : 'error'} sx={{ mb: 2 }}>
+        <Alert
+          severity={submitStatus.includes('success') ? 'success' : 'error'}
+          sx={{ mb: 2 }}
+        >
           {submitStatus}
         </Alert>
       )}
@@ -361,22 +375,22 @@ const Home = () => {
           Draft Message for {selectedPerson?.name}
         </DialogTitle>
         <DialogContent>
-          <Paper 
-            elevation={0} 
-            sx={{ 
-              p: 2, 
-              mb: 2, 
+          <Paper
+            elevation={0}
+            sx={{
+              p: 2,
+              mb: 2,
               bgcolor: 'background.default',
               border: '1px solid',
               borderColor: 'divider',
-              borderRadius: 1
+              borderRadius: 1,
             }}
           >
             <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
               {messageEdit}
             </Typography>
           </Paper>
-          
+
           <TextField
             fullWidth
             multiline
@@ -384,14 +398,14 @@ const Home = () => {
             label="How would you like to modify this message?"
             value={editRequest}
             onChange={(e) => setEditRequest(e.target.value)}
-            placeholder="Example: Make it more formal, focus on their expertise in renewable energy, or mention their recent project..."
+            placeholder="Example: Make it more formal, focus on their expertise in renewable energy..."
             sx={{ mb: 2 }}
           />
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setSelectedPerson(null)}>Cancel</Button>
-          <Button 
-            variant="contained" 
+          <Button
+            variant="contained"
             onClick={handleMessageUpdate}
             disabled={!editRequest}
           >
@@ -414,4 +428,4 @@ const Home = () => {
   );
 };
 
-export default Home; 
+export default Home;
