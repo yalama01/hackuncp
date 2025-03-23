@@ -3,6 +3,8 @@ from fastapi import APIRouter
 
 from backend.internal_logic.find_people import rate_relevancy, find_people
 from backend.internal_logic.job_title import get_job_title_list
+from backend.internal_logic.bio_summary import make_bio
+from backend.internal_logic.email_draft import make_email
 from backend.internal_logic.models import EventLocationRequest
 
 router = APIRouter()
