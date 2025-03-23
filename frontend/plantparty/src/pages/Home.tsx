@@ -235,16 +235,6 @@ const Home = () => {
                 >
                   Draft Message
                 </Button>
-                {!person.isConnected && (
-                  <Button
-                    startIcon={isConnecting ? <CircularProgress size={20} /> : <SendIcon />}
-                    onClick={() => handleConnectAndSend(person)}
-                    disabled={isConnecting || !isAuthenticated}
-                    color="primary"
-                  >
-                    Connect & Send
-                  </Button>
-                )}
                 {person.isConnected && (
                   <Typography color="success.main">
                     ✓ Connected
@@ -303,6 +293,17 @@ const Home = () => {
           >
             Update Message
           </Button>
+          {selectedPerson && !selectedPerson.isConnected && (
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={isConnecting ? <CircularProgress size={20} /> : <SendIcon />}
+              onClick={() => handleConnectAndSend(selectedPerson)}
+              disabled={isConnecting || !isAuthenticated}
+            >
+              Connect & Send
+            </Button>
+          )}
         </DialogActions>
       </Dialog>
     </Container>
