@@ -26,6 +26,7 @@ import LinkedInIcon from '@mui/icons-material/LinkedIn';
 import SendIcon from '@mui/icons-material/Send';
 import { motion } from 'framer-motion';
 import LinkedInAuth from '../components/LinkedInAuth';
+import { submitProjectProposal } from '../services/api';
 
 interface Person {
   id: string;
@@ -64,7 +65,14 @@ const mockPeople: Person[] = [
 
 const Home = () => {
   const [idea, setIdea] = useState('');
-  const [location, setLocation] = useState('');
+  const [city, setCity] = useState('');
+  const [state, setState] = useState('');
+  const [country, setCountry] = useState('');
+  const [postalCode, setPostalCode] = useState('');
+  const [latitude, setLatitude] = useState('');
+  const [longitude, setLongitude] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<string | null>(null);
   const [isSearching, setIsSearching] = useState(false);
   const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
   const [messageEdit, setMessageEdit] = useState('');
@@ -73,6 +81,41 @@ const Home = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<string | null>(null);
+
+  const handleSubmit = async () => {
+    if (!idea || !city || !state || !country || !postalCode || !latitude || !longitude) {
+      setSubmitStatus('Please fill in all required fields');
+      return;
+    }
+
+    setIsSubmitting(true);
+    setSubmitStatus(null);
+
+    try {
+      const proposal = {
+        event_summary: idea,
+        location: {
+          city,
+          state,
+          country,
+          postal_code: postalCode,
+          coordinates: {
+            latitude: parseFloat(latitude),
+            longitude: parseFloat(longitude),
+          },
+        },
+      };
+
+      await submitProjectProposal(proposal);
+      setSubmitStatus('Project proposal submitted successfully!');
+      handleSearch(); // Search for potential collaborators
+    } catch (error) {
+      console.error('Error submitting project proposal:', error);
+      setSubmitStatus('Failed to submit project proposal. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const handleSearch = async () => {
     setIsSearching(true);
@@ -147,7 +190,7 @@ const Home = () => {
         <LinkedInAuth onAuth={handleLinkedInAuth} isAuthenticated={isAuthenticated} />
       </Box>
 
-      {/* Search Section */}
+      {/* Project Proposal Form */}
       <Box
         component={motion.div}
         initial={{ opacity: 0, y: 20 }}
@@ -166,30 +209,91 @@ const Home = () => {
           label="Describe your sustainability idea or project"
           value={idea}
           onChange={(e) => setIdea(e.target.value)}
-          placeholder="Example: I'm developing a community garden project that uses sustainable irrigation methods..."
+          placeholder="Example: A super awesome community garden 20sq ft"
+          required
         />
-        <TextField
-          fullWidth
-          label="Location"
-          value={location}
-          onChange={(e) => setLocation(e.target.value)}
-          placeholder="City, State, or Country"
-          InputProps={{
-            startAdornment: (
-              <LocationOnIcon sx={{ mr: 1, color: 'text.secondary' }} />
-            ),
-          }}
-        />
+        
+        <Grid container spacing={2}>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="City"
+              value={city}
+              onChange={(e) => setCity(e.target.value)}
+              placeholder="Charlotte"
+              required
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="State"
+              value={state}
+              onChange={(e) => setState(e.target.value)}
+              placeholder="NC"
+              required
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Country"
+              value={country}
+              onChange={(e) => setCountry(e.target.value)}
+              placeholder="USA"
+              required
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Postal Code"
+              value={postalCode}
+              onChange={(e) => setPostalCode(e.target.value)}
+              placeholder="28202"
+              required
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Latitude"
+              value={latitude}
+              onChange={(e) => setLatitude(e.target.value)}
+              placeholder="35.2271"
+              type="number"
+              required
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Longitude"
+              value={longitude}
+              onChange={(e) => setLongitude(e.target.value)}
+              placeholder="-80.8431"
+              type="number"
+              required
+            />
+          </Grid>
+        </Grid>
+
         <Button
           variant="contained"
           size="large"
-          onClick={handleSearch}
-          disabled={!idea || !location || isSearching}
-          startIcon={isSearching ? <CircularProgress size={20} /> : <SearchIcon />}
+          onClick={handleSubmit}
+          disabled={isSubmitting}
+          startIcon={isSubmitting ? <CircularProgress size={20} /> : <SendIcon />}
         >
-          {isSearching ? 'Finding Connections...' : 'Find Connections'}
+          {isSubmitting ? 'Submitting...' : 'Submit Project Proposal'}
         </Button>
       </Box>
+
+      {submitStatus && (
+        <Alert severity={submitStatus.includes('success') ? 'success' : 'error'} sx={{ mb: 2 }}>
+          {submitStatus}
+        </Alert>
+      )}
 
       {connectionStatus && (
         <Alert severity="info" sx={{ mb: 2 }}>
