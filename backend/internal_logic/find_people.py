@@ -46,39 +46,55 @@ def find_people(job_titles: List[str], location: str):
         'pretty': True
     }
 
-    response = CLIENT.person.search(**params).json()
+    try:
+        response = CLIENT.person.search(**params).json()
+    except Exception as e:
+        print("API call failed:", e)
+        return []
+    
     persons = []
 
-    if response.get("status") == 200 and "data" in response:
-        for person in response["data"]:
-            experience = person.get("experience", [])
-            current_job = next((job for job in experience if job.get("is_primary")), None)
+    if response.get("status") != 200:
+        print("error with PDL request:")
+        print(json.dumps(response, indent=2))  # Show full error
+        if "error" in response:
+            if "sql" in response["error"].lower():
+                print("possible issue with the SQL syntax.")
+        return []
 
-            relevant_past_jobs = []
-            for job in experience:
-                if job.get("is_primary", False):
-                    continue
-                days = days_since(job.get("end_date"))
-                if days is not None and days <= 3650:
-                    title = job.get("title", {}).get("name", "")
-                    relevant_past_jobs.append((title, days))
+    if "data" not in response:
+        print("no data field in PDL response.")
+        return []
 
-            info = {
-                "name": person.get("full_name", ""),
-                "location": person.get("location_name", ""),
-                "current_job_title": current_job.get("title", {}).get("name", "") if current_job else "",
-                "company_name": current_job.get("company", {}).get("name", "") if current_job else "",
-                "industry": current_job.get("company", {}).get("industry", "") if current_job else "",
-                "skills": person.get("skills", []),
-                "interests": person.get("interests", []),
-                "summary": person.get("summary", ""),
-                "emails": person.get("personal_emails", []),
-                "phone_numbers": person.get("phone_numbers", []),
-                "linkedin": f"https://linkedin.com/in/{person.get('linkedin_username', '')}",
-                "past_job_title": relevant_past_jobs
-            }
+    for person in response["data"]:
+        experience = person.get("experience", [])
+        current_job = next((job for job in experience if job.get("is_primary")), None)
 
-            persons.append(Person(**info))                
+        relevant_past_jobs = []
+        for job in experience:
+            if job.get("is_primary", False):
+                continue
+            days = days_since(job.get("end_date"))
+            if days is not None and days <= 3650:
+                title = job.get("title", {}).get("name", "")
+                relevant_past_jobs.append((title, days))
+
+        info = {
+            "name": person.get("full_name", ""),
+            "location": person.get("location_name", ""),
+            "current_job_title": current_job.get("title", {}).get("name", "") if current_job else "",
+            "company_name": current_job.get("company", {}).get("name", "") if current_job else "",
+            "industry": current_job.get("company", {}).get("industry", "") if current_job else "",
+            "skills": person.get("skills", []),
+            "interests": person.get("interests", []),
+            "summary": person.get("summary", ""),
+            "emails": person.get("personal_emails", []),
+            "phone_numbers": person.get("phone_numbers", []),
+            "linkedin": f"https://linkedin.com/in/{person.get('linkedin_username', '')}",
+            "past_job_title": relevant_past_jobs
+        }
+
+        persons.append(Person(**info))                
 
 
         #Optional: Save full raw data to file
