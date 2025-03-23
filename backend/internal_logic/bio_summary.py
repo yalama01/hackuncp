@@ -35,8 +35,6 @@ def bio(person: Person, event_summary: str) -> str:
             
             Name: {person.name}
             
-            Summary : {person.bio} 
-            
             Current Job Title : {person.current_job_title}
             
             Company Name : {person.company_name}
