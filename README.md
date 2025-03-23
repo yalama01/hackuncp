@@ -116,4 +116,3 @@ pytest
 - OpenAI for AI text generation.
 - PeopleDataLabs for people search API.
 - Material-UI & Framer Motion for frontend magic.
->>>>>>> Stashed changes
