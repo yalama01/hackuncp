@@ -72,7 +72,7 @@ def find_people(job_titles: List[str], location: str):
 
     params = {
         'sql': sql_query,
-        'size': 5,  #Change to increase number of results
+        'size': 2,  #Change to increase number of results
         'pretty': True
     }
 
